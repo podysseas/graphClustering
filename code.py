@@ -23,6 +23,30 @@ from sklearn.datasets import make_circles
 from sklearn.neighbors import kneighbors_graph
 from sklearn.cluster import SpectralClustering
 
+def add_weights_as_list(g,distance):
+    
+    '''
+        Input : graph 
+                distance/similarity matrix
+        -----------------------------
+        Output: graph with attribute weights completed
+    
+    '''
+    g = graph_threshold
+    
+
+    weights = []
+
+    edges = g.get_edgelist()
+    
+    for i in range(0,len(edges[:])):
+        # find weight from distance matrix
+        i_index = edges[i][0]
+        j_index = edges[i][1]
+        weights.append(distance[i_index,j_index])
+        
+    g.es['weight'] = weights 
+    return g
 
 def all_same(items):
     return all(x == items[0] for x in items)
@@ -228,40 +252,27 @@ if __name__ == "__main__":
     ig.plot(graph_shared, "graph_shared.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
     #--------------------------------------------------------
     
-    paok = distance.tolist()
+    
     '''
         TO DO : 
             - check the algorithms
             
-            Walktrap 
+            Walktrap  --- checked
             
-            Fastgreedy
+            Fastgreedy -- checked
     
     ''' 
-    
-    g = graph_threshold
-    weights = []
-    # paok = g.get_edgelist()
-    # matrix = g.get_adjacency()
-    # 
-    # wtrap = g.community_walktrap(steps = 4)
 
-    # result = wtrap.as_clustering()
-  
-    # create weight list 
-    # take edge list 
-    # save weights
-    edges = g.get_edgelist()
-    
-    for i in range(0,len(edges[:])):
-        # find weight from distance matrix
-        i_index = edges[i][0]
-        j_index = edges[i][1]
-        weights.append(distance[i_index,j_index])
-        
-    g.es['weight'] = weights    
+    g = graph_threshold
+    g = add_weights_as_list(g,distance)
+
     wtrap = g.community_walktrap(weights = g.es['weight'],steps = 30)
     lab =np.array(wtrap.as_clustering()).tolist()
+
+    #g.to_undirected()
+    #fastgreedy = g.community_fastgreedy(weights = g.es['weight'])    
+    #lab =np.array(fastgreedy.as_clustering()).tolist()
+
     
     labels = np.zeros(len(distance),dtype="int")
     n_clusters = len(lab[:])
@@ -274,12 +285,11 @@ if __name__ == "__main__":
             i_index = lab[k][l]
             labels[i_index] = k
     
-    
-    
     g        = Plot_Graph(g,labels)
 
     layout              ="kk"
-    ig.plot(g, "graph_plot.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
+
+    ig.plot(g, "graph_plot_3.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
     
     
     
