@@ -232,10 +232,8 @@ if __name__ == "__main__":
             Fastgreedy
     
     ''' 
-    vals  : eigenvalues not necessarily sorted ,
-    vecs  : eigenvectors 
-    '''
-    ''' use of graph normalized adjM '''
+   
+    
     
     #matrix_to_spectral = graph_normalized.get_adjacency()[:, :]  # int 0 1
     # matrix_to_spectral = graph_threshold.get_adjacency()[:, :]  # int 0 1
@@ -258,8 +256,4 @@ if __name__ == "__main__":
     #ig.plot(temp_graph, "graph.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
                 
 
-
-a  = np.array([ 1 , 2 ,3])
-b  = np.array([2,2,3])
-paok = np.array(np.where(a==b)).size
 
