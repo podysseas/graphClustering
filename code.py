@@ -9,8 +9,9 @@ Created on Sat Sep 19 17:10:24 2020
 
 """
 from random import randint
+import warnings
+warnings.filterwarnings("ignore")
 
-import sys
 import numpy as np
 import os
 import pandas as pd
@@ -19,9 +20,31 @@ import time
 import igraph as ig
 import seaborn as sns
 import statistics
-from sklearn.datasets import make_circles
-from sklearn.neighbors import kneighbors_graph
-from sklearn.cluster import SpectralClustering
+# from sklearn.datasets import make_circles
+# from sklearn.neighbors import kneighbors_graph
+# from sklearn.cluster import SpectralClustering
+
+def Transform_labels_2dList_to_intArray(distance,lab):
+    labels = np.zeros(len(distance),dtype="int")
+    n_clusters = len(lab[:])
+    for k in range(0,n_clusters):
+        
+        for l in range(0,len(lab[k][:])) :
+            
+            # k is the cluster
+            # l is the vertex node 
+            i_index = lab[k][l]
+            labels[i_index] = k
+            
+    return labels
+
+def Plot_graph_visual_style(clust,name_of_graph):   
+    
+    visual_style = dict()
+    visual_style["bbox"] = (500,500)
+    #visual_style["vertex_label"] = labels
+    ig.plot(clust,name_of_graph,mark_groups = True,**visual_style)
+    return
 
 def add_weights_as_list(g,distance):
     
@@ -32,7 +55,6 @@ def add_weights_as_list(g,distance):
         Output: graph with attribute weights completed
     
     '''
-    g = graph_threshold
     
 
     weights = []
@@ -51,18 +73,19 @@ def add_weights_as_list(g,distance):
 def all_same(items):
     return all(x == items[0] for x in items)
 
-def Plot_Graph(graph,label):
+def Plot_Graph(graph,label,name_of_graph,layout):
     #graph.vs["label"] = label
     color_dict = []
     values, counts = np.unique(label, return_counts=True)
-
     n = len(values)+1 #clusters start from 0 or 1!
     for i in range(n):
         color_dict.append('#%06X' % randint(0, 0xFFFFFF))
     
-    np.unique(label)
+    
     graph.vs["color"] = [color_dict[l] for l in label]
-    return graph
+    ig.plot(graph_threshold, name_of_graph, layout=layout, bbox=(500, 500), margin=50, inline='None')
+
+    return 
 
 def Plot_Distribution(distance):
     '''
@@ -222,9 +245,7 @@ if __name__ == "__main__":
     ''' this block calculates distance '''
     start = time.time()
     distance = calculate_distance(filtered_data)
-    end = time.time()
-    elapsed_time = format(end - start, '.3f')
-    print('The execution time is {0} seconds\n'.format(elapsed_time))
+    
     
     ''' ***************************    '''
     layout              ="kk"
@@ -234,22 +255,21 @@ if __name__ == "__main__":
     figure.savefig('distribution_of_similarities.png', dpi=400)
     #--------------------------------------------------------
     graph_threshold = Choose_Threshold_Graph(distance, threshold=0.86)
-    #graph_threshold = Plot_Graph(graph_threshold)
+   
     ig.plot(graph_threshold, "graph_threshold.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
 
     #--------------------------------------------------------
     graph_normalized = normalized_weighted_graph(distance)
-    #graph_normalized = Plot_Graph(graph_normalized)
+    
     ig.plot(graph_normalized, "graph_normalized.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
-
+    
     #--------------------------------------------------------
     temp_graph          = graph_normalized
     adj_matrix_boolean  = np.array(temp_graph.get_adjacency().data)
     threshold_neighbors = 300
     graph_shared,label  = shared_nearest_neighbors(adj_matrix_boolean,threshold_neighbors)
-    graph_shared        = Plot_Graph(graph_shared,label)
-    layout              ="kk"
-    ig.plot(graph_shared, "graph_shared.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
+    Plot_Graph(graph_shared,label,"graph_shared.png",layout)
+    #ig.plot(graph_shared, "graph_shared.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
     #--------------------------------------------------------
     
     
@@ -262,37 +282,31 @@ if __name__ == "__main__":
             Fastgreedy -- checked
     
     ''' 
-
     g = graph_threshold
     g = add_weights_as_list(g,distance)
-
     wtrap = g.community_walktrap(weights = g.es['weight'],steps = 30)
     lab =np.array(wtrap.as_clustering()).tolist()
+    clust_wtrap =  wtrap.as_clustering()
+    labels_wtrap = Transform_labels_2dList_to_intArray(distance,lab)
+    Plot_Graph(g,labels_wtrap,"clustering_wtrap_layout_kk.png",layout)
 
-    #g.to_undirected()
-    #fastgreedy = g.community_fastgreedy(weights = g.es['weight'])    
-    #lab =np.array(fastgreedy.as_clustering()).tolist()
 
+    g = graph_threshold
+    g.to_undirected()
+    g = add_weights_as_list(g,distance)
+    fastgreedy = g.community_fastgreedy(weights = g.es['weight'])    
+    lab =np.array(fastgreedy.as_clustering()).tolist()
+    clust_fastgreedy =  fastgreedy.as_clustering()
+    labels_fastgreedy = Transform_labels_2dList_to_intArray(distance,lab)
     
-    labels = np.zeros(len(distance),dtype="int")
-    n_clusters = len(lab[:])
-    for k in range(0,n_clusters):
-        
-        for l in range(0,len(lab[k][:])) :
-            
-            # k is the cluster
-            # l is the vertex node 
-            i_index = lab[k][l]
-            labels[i_index] = k
+    Plot_Graph(g,labels_fastgreedy,"clustering_fastgreedy_layout_kk.png",layout)
+                          
     
-    g        = Plot_Graph(g,labels)
+    Plot_graph_visual_style(clust_fastgreedy,"clustering_fastgreedy_visual_style.png")
+    Plot_graph_visual_style(clust_wtrap,"clustering_wtrap_visual_style.png")
 
-    layout              ="kk"
 
-    ig.plot(g, "graph_plot_3.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
-    
-    
-    
+
     #matrix_to_spectral = graph_normalized.get_adjacency()[:, :]  # int 0 1
     # matrix_to_spectral = graph_threshold.get_adjacency()[:, :]  # int 0 1
     
@@ -313,5 +327,7 @@ if __name__ == "__main__":
 
     #ig.plot(temp_graph, "graph.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
                 
-
+    end = time.time()
+    elapsed_time = format(end - start, '.3f')
+    print('The execution time is {0} seconds\n'.format(elapsed_time))
 
