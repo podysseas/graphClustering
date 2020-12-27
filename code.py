@@ -8,6 +8,8 @@ Created on Sat Sep 19 17:10:24 2020
 """
 
 """
+from random import randint
+
 import sys
 import numpy as np
 import os
@@ -27,9 +29,13 @@ def all_same(items):
 
 def Plot_Graph(graph,label):
     #graph.vs["label"] = label
-    color_dict = ["pink","blue","red","cyan",
-                  "green","yellow","black",
-                  "chocolate","brown","pink"]
+    color_dict = []
+    values, counts = np.unique(label, return_counts=True)
+
+    n = len(values)+1 #clusters start from 0 or 1!
+    for i in range(n):
+        color_dict.append('#%06X' % randint(0, 0xFFFFFF))
+    
     np.unique(label)
     graph.vs["color"] = [color_dict[l] for l in label]
     return graph
@@ -222,7 +228,7 @@ if __name__ == "__main__":
     ig.plot(graph_shared, "graph_shared.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
     #--------------------------------------------------------
     
-    
+    paok = distance.tolist()
     '''
         TO DO : 
             - check the algorithms
@@ -232,7 +238,49 @@ if __name__ == "__main__":
             Fastgreedy
     
     ''' 
-   
+    
+    g = graph_threshold
+    weights = []
+    # paok = g.get_edgelist()
+    # matrix = g.get_adjacency()
+    # 
+    # wtrap = g.community_walktrap(steps = 4)
+
+    # result = wtrap.as_clustering()
+  
+    # create weight list 
+    # take edge list 
+    # save weights
+    edges = g.get_edgelist()
+    
+    for i in range(0,len(edges[:])):
+        # find weight from distance matrix
+        i_index = edges[i][0]
+        j_index = edges[i][1]
+        weights.append(distance[i_index,j_index])
+        
+    g.es['weight'] = weights    
+    wtrap = g.community_walktrap(weights = g.es['weight'],steps = 30)
+    lab =np.array(wtrap.as_clustering()).tolist()
+    
+    labels = np.zeros(len(distance),dtype="int")
+    n_clusters = len(lab[:])
+    for k in range(0,n_clusters):
+        
+        for l in range(0,len(lab[k][:])) :
+            
+            # k is the cluster
+            # l is the vertex node 
+            i_index = lab[k][l]
+            labels[i_index] = k
+    
+    
+    
+    g        = Plot_Graph(g,labels)
+
+    layout              ="kk"
+    ig.plot(g, "graph_plot.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
+    
     
     
     #matrix_to_spectral = graph_normalized.get_adjacency()[:, :]  # int 0 1
