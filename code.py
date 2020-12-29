@@ -29,7 +29,8 @@ def Calculate_distance_metric_inside_cluster(distance,clusters):
     clusters = np.array(clust_fastgreedy).tolist()
     
     average_cluster = np.zeros(shape =len(clusters))
-   
+    variance_cluster = np.zeros(shape =len(clusters))
+
     for clust in range(len(clusters)):
         
         nodes = clusters[clust]
@@ -37,6 +38,7 @@ def Calculate_distance_metric_inside_cluster(distance,clusters):
         if len(nodes) > 1:
             
             sum = 0;
+            sum_var = 0
             count = 0
             for i in range(len(nodes)):
                 
@@ -47,14 +49,35 @@ def Calculate_distance_metric_inside_cluster(distance,clusters):
                         
                         temp = distance[nodes[i],nodes[j]]
                         sum  = sum + temp 
+                        
                         count = count + 1 
                         #print(nodes[i],nodes[j])
-    
-            average_cluster[clust] = sum/count
+                    
+            average_cluster[clust]  = sum/count
+            #-------------------- VARIANCE --------
+            sum_var = 0
+            count = 0
+            for i in range(len(nodes)):
+                
+                k = i + 1
+                for j in range(k,len(nodes)):
+            
+                    if nodes[i] !=nodes[j]:
+                        
+                        temp = distance[nodes[i],nodes[j]] - average_cluster[clust]
+                        sum_var  = sum_var + pow(temp,2) 
+                        
+                        count = count + 1 
+                        #print(nodes[i],nodes[j])
+                    
+        
+            variance_cluster[clust] = sum_var/count
         else:
             average_cluster[clust] = 1
-                
-    return average_cluster
+            variance_cluster[clust] = 0
+            
+            
+    return average_cluster,variance_cluster
 
 def Transform_labels_2dList_to_intArray(distance,lab):
     labels = np.zeros(len(distance),dtype="int")
@@ -127,10 +150,13 @@ def Plot_Distribution(distance):
     '''
     A = distance.flatten()
     
-    t = sns.distplot(A, hist=True, kde=False,
-                     bins=int(300 / 5), color="darkblue",
-                     hist_kws={'edgecolor': 'black'},
-                     kde_kws={'linewidth': 4})
+    # t = sns.distplot(A,hist=True, kde=True,
+    #                  bins=int(300 / 5), color="darkblue",
+    #                  hist_kws={'edgecolor': 'black'},
+    #                  kde_kws={'linewidth': 2})
+    t = sns.histplot(x=A, kde=True,stat="probability",
+                     bins=int(300 / 5))
+
     figure = t.get_figure()
     return figure
 
@@ -141,13 +167,13 @@ def calculate_distance(data):
         --------------------------------------
         Output : a similarity matrix normalized to [0,1]
     '''
-    limit = len(data)
     distance = np.zeros((len(data), len(data)))
 
+    
     for i in range(0, len(distance)):
-        #limit = len(filtered_data)
+        start = i 
 
-        for j in range(limit):
+        for j in range(start,len(distance)):
             string1 = data.iloc[i, 1]  # take the second column
             string2 = data.iloc[j, 1]
             temp_distance = 1 - editdistance.eval(string1, string2) / len(string1)
@@ -157,7 +183,6 @@ def calculate_distance(data):
             distance[i, j] = temp_distance
             distance[j, i] = temp_distance
 
-        limit = limit - 1
     return distance
 
 
@@ -187,7 +212,7 @@ def normalized_weighted_graph(distance):
         Output: normalized_vertex_graph
     '''
     size = distance.shape[0]
-    global adj_matrix_boolean
+    #global adj_matrix_boolean
     adj_matrix_boolean = np.ones((size, size), dtype=int)
     vertex_threshold = np.ones(size)
     for i in range(0, size):
@@ -267,13 +292,16 @@ def shared_nearest_neighbors(adj_matrix_boolean,threshold_neighbors):
 if __name__ == "__main__":
     
     FILE = '2_IMGT-gapped-nt-sequences.txt'
+    #FILE = '4_IMGT-gapped-AA-sequences.txt'
+
     COLUMN = 'V.D.J.REGION'
     SEQUENCE_NUMBER = 'Sequence.number'
     
     __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
     data = pd.read_csv(os.path.join(__location__, FILE), sep='\t')
     filtered_data = data[['Sequence.number', COLUMN]].dropna()  # drop nan
-    
+    #filtered_data = data[['Sequence ID',COLUMN]].head(2000)
+
     ''' this block calculates distance '''
     start = time.time()
     distance = calculate_distance(filtered_data)
@@ -343,21 +371,9 @@ if __name__ == "__main__":
     Plot_Graph(g,labels_fastgreedy,"clustering_test.png",layout)
 
     
-    avg_clust_fastgreedy = Calculate_distance_metric_inside_cluster(distance, clust_fastgreedy)
-    avg_clust_wtrap =Calculate_distance_metric_inside_cluster(distance,clust_wtrap)
-
-   
-    
-   
-    # g = graph_threshold
-    # g = add_weights_as_list(g,distance)
-    # edge_betweenness = g.community_edge_betweenness(directed=False,weights = g.es['weight'])    
-    # lab =np.array(edge_betweenness.as_clustering()).tolist()
-    # clust_edge_betweenness =  edge_betweenness.as_clustering()
-    # labels_edge_betweenness = Transform_labels_2dList_to_intArray(distance,lab)
-    
-    # Plot_Graph(g,labels_edge_betweenness,"clustering_fastgreedy_layout_kk.png",layout)
-                          
+    avg_clust_fastgreedy,var_clust_fastgreedy = Calculate_distance_metric_inside_cluster(distance, clust_fastgreedy)
+    avg_clust_wtrap,var_clust_wtrap =Calculate_distance_metric_inside_cluster(distance,clust_wtrap)
+      
     
     Plot_graph_visual_style(clust_fastgreedy,"clustering_fastgreedy_visual_style.png")
     Plot_graph_visual_style(clust_wtrap,"clustering_wtrap_visual_style.png")
