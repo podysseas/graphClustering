@@ -43,7 +43,7 @@ def Plot_graph_visual_style(clust,name_of_graph):
     visual_style = dict()
     visual_style["bbox"] = (500,500)
     #visual_style["vertex_label"] = labels
-    ig.plot(clust,name_of_graph,mark_groups = True,**visual_style)
+    ig.plot(clust,name_of_graph,mark_groups = False,**visual_style)
     return
 
 def add_weights_as_list(g,distance):
@@ -83,7 +83,7 @@ def Plot_Graph(graph,label,name_of_graph,layout):
     
     
     graph.vs["color"] = [color_dict[l] for l in label]
-    ig.plot(graph_threshold, name_of_graph, layout=layout, bbox=(500, 500), margin=50, inline='None')
+    ig.plot(graph, name_of_graph, layout=layout, bbox=(500, 500), margin=50, inline='None')
 
     return 
 
@@ -113,7 +113,7 @@ def calculate_distance(data):
     distance = np.zeros((len(data), len(data)))
 
     for i in range(0, len(distance)):
-        limit = len(filtered_data)
+        #limit = len(filtered_data)
 
         for j in range(limit):
             string1 = data.iloc[i, 1]  # take the second column
@@ -252,7 +252,7 @@ if __name__ == "__main__":
 
     #--------------------------------------------------------
     figure = Plot_Distribution(distance)
-    figure.savefig('distribution_of_similarities.png', dpi=400)
+    figure.savefig('distribution_of_similarities.jpg', dpi=400)
     #--------------------------------------------------------
     graph_threshold = Choose_Threshold_Graph(distance, threshold=0.86)
    
@@ -305,6 +305,62 @@ if __name__ == "__main__":
     Plot_graph_visual_style(clust_fastgreedy,"clustering_fastgreedy_visual_style.png")
     Plot_graph_visual_style(clust_wtrap,"clustering_wtrap_visual_style.png")
 
+
+    layout = g.layout_drl(weights=g.es["weight"], fixed=None, seed=None, options=None, dim=2)
+
+    Plot_Graph(g,labels_fastgreedy,"clustering_test.png",layout)
+
+    
+
+    # clusters = np.array(clust_fastgreedy).tolist()
+    
+    # average_ = np.zeros(shape = clusters._len)
+    
+    # # for all clusters
+    # for k in range(len(average)):
+        
+    #     # take all nodes of the i cluster 
+    #     k = 0
+    #     nodes = clusters[k]
+        
+    #     temp = np.zeros(shape = len(nodes))
+        
+    #     limit = len(temp)
+    #     for i in range(temp):
+            
+    #         for j in range(temp):
+        
+        
+
+    #         limit = limit - 1
+    
+
+    #     variance 
+    # def Calculate_distance_metric_inside_cluster(distance,clusters):
+    # '''
+
+    # Input : similarity matrix
+    #         clusters
+    # -------------------------------
+    # Output: Metrics: // to do : add more ? 
+    
+    #                 average similarity 
+            
+    # '''
+    
+   # return average,variance
+    # g = graph_threshold
+    # g = add_weights_as_list(g,distance)
+    # edge_betweenness = g.community_edge_betweenness(directed=False,weights = g.es['weight'])    
+    # lab =np.array(edge_betweenness.as_clustering()).tolist()
+    # clust_edge_betweenness =  edge_betweenness.as_clustering()
+    # labels_edge_betweenness = Transform_labels_2dList_to_intArray(distance,lab)
+    
+    # Plot_Graph(g,labels_edge_betweenness,"clustering_fastgreedy_layout_kk.png",layout)
+                          
+    
+    Plot_graph_visual_style(clust_fastgreedy,"clustering_fastgreedy_visual_style.png")
+    Plot_graph_visual_style(clust_wtrap,"clustering_wtrap_visual_style.png")
 
 
     #matrix_to_spectral = graph_normalized.get_adjacency()[:, :]  # int 0 1
