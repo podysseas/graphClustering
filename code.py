@@ -24,6 +24,38 @@ import statistics
 # from sklearn.neighbors import kneighbors_graph
 # from sklearn.cluster import SpectralClustering
 
+def Calculate_distance_metric_inside_cluster(distance,clusters):
+    
+    clusters = np.array(clust_fastgreedy).tolist()
+    
+    average_cluster = np.zeros(shape =len(clusters))
+   
+    for clust in range(len(clusters)):
+        
+        nodes = clusters[clust]
+       
+        if len(nodes) > 1:
+            
+            sum = 0;
+            count = 0
+            for i in range(len(nodes)):
+                
+                k = i + 1
+                for j in range(k,len(nodes)):
+            
+                    if nodes[i] !=nodes[j]:
+                        
+                        temp = distance[nodes[i],nodes[j]]
+                        sum  = sum + temp 
+                        count = count + 1 
+                        #print(nodes[i],nodes[j])
+    
+            average_cluster[clust] = sum/count
+        else:
+            average_cluster[clust] = 1
+                
+    return average_cluster
+
 def Transform_labels_2dList_to_intArray(distance,lab):
     labels = np.zeros(len(distance),dtype="int")
     n_clusters = len(lab[:])
@@ -311,44 +343,12 @@ if __name__ == "__main__":
     Plot_Graph(g,labels_fastgreedy,"clustering_test.png",layout)
 
     
+    avg_clust_fastgreedy = Calculate_distance_metric_inside_cluster(distance, clust_fastgreedy)
+    avg_clust_wtrap =Calculate_distance_metric_inside_cluster(distance,clust_wtrap)
 
-    # clusters = np.array(clust_fastgreedy).tolist()
+   
     
-    # average_ = np.zeros(shape = clusters._len)
-    
-    # # for all clusters
-    # for k in range(len(average)):
-        
-    #     # take all nodes of the i cluster 
-    #     k = 0
-    #     nodes = clusters[k]
-        
-    #     temp = np.zeros(shape = len(nodes))
-        
-    #     limit = len(temp)
-    #     for i in range(temp):
-            
-    #         for j in range(temp):
-        
-        
-
-    #         limit = limit - 1
-    
-
-    #     variance 
-    # def Calculate_distance_metric_inside_cluster(distance,clusters):
-    # '''
-
-    # Input : similarity matrix
-    #         clusters
-    # -------------------------------
-    # Output: Metrics: // to do : add more ? 
-    
-    #                 average similarity 
-            
-    # '''
-    
-   # return average,variance
+   
     # g = graph_threshold
     # g = add_weights_as_list(g,distance)
     # edge_betweenness = g.community_edge_betweenness(directed=False,weights = g.es['weight'])    
