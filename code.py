@@ -20,6 +20,9 @@ import time
 import igraph as ig
 import seaborn as sns
 import statistics
+import datetime
+
+
 # from sklearn.datasets import make_circles
 # from sklearn.neighbors import kneighbors_graph
 # from sklearn.cluster import SpectralClustering
@@ -158,7 +161,7 @@ def Plot_Distribution(distance):
                      bins=int(300 / 5))
 
     figure = t.get_figure()
-    return figure
+    return figure,A
 
 def calculate_distance(data):
     
@@ -293,9 +296,16 @@ if __name__ == "__main__":
     
     FILE = '2_IMGT-gapped-nt-sequences.txt'
     #FILE = '4_IMGT-gapped-AA-sequences.txt'
-
+    OUTPUT_FOLDER = "MY_IMAGES/"
     COLUMN = 'V.D.J.REGION'
     SEQUENCE_NUMBER = 'Sequence.number'
+    
+    path = os.getcwd()
+    e = datetime.datetime.now()
+    Hour_time_name = str(e.hour) + "_" + str(e.minute) + "_" +  str(e.second)
+    os.makedirs("images_"+ Hour_time_name)
+    OUTPUT_FOLDER = "images_"+ Hour_time_name +"/"
+    
     
     __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
     data = pd.read_csv(os.path.join(__location__, FILE), sep='\t')
@@ -311,24 +321,26 @@ if __name__ == "__main__":
     layout              ="kk"
 
     #--------------------------------------------------------
-    figure = Plot_Distribution(distance)
-    figure.savefig('distribution_of_similarities.jpg', dpi=400)
+    figure,A = Plot_Distribution(distance)
+    figure.savefig(OUTPUT_FOLDER +'distribution_of_similarities.jpg', dpi=400)
+    
+    
     #--------------------------------------------------------
     graph_threshold = Choose_Threshold_Graph(distance, threshold=0.86)
    
-    ig.plot(graph_threshold, "graph_threshold.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
+    ig.plot(graph_threshold, OUTPUT_FOLDER + "graph_threshold.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
 
     #--------------------------------------------------------
     graph_normalized = normalized_weighted_graph(distance)
     
-    ig.plot(graph_normalized, "graph_normalized.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
+    ig.plot(graph_normalized,OUTPUT_FOLDER + "graph_normalized.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
     
     #--------------------------------------------------------
     temp_graph          = graph_normalized
     adj_matrix_boolean  = np.array(temp_graph.get_adjacency().data)
     threshold_neighbors = 300
     graph_shared,label  = shared_nearest_neighbors(adj_matrix_boolean,threshold_neighbors)
-    Plot_Graph(graph_shared,label,"graph_shared.png",layout)
+    Plot_Graph(graph_shared,label,OUTPUT_FOLDER +"graph_shared.png",layout)
     #ig.plot(graph_shared, "graph_shared.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
     #--------------------------------------------------------
     
@@ -348,7 +360,7 @@ if __name__ == "__main__":
     lab =np.array(wtrap.as_clustering()).tolist()
     clust_wtrap =  wtrap.as_clustering()
     labels_wtrap = Transform_labels_2dList_to_intArray(distance,lab)
-    Plot_Graph(g,labels_wtrap,"clustering_wtrap_layout_kk.png",layout)
+    Plot_Graph(g,labels_wtrap,OUTPUT_FOLDER +"clustering_wtrap_layout_kk.png",layout)
 
 
     g = graph_threshold
@@ -359,34 +371,33 @@ if __name__ == "__main__":
     clust_fastgreedy =  fastgreedy.as_clustering()
     labels_fastgreedy = Transform_labels_2dList_to_intArray(distance,lab)
     
-    Plot_Graph(g,labels_fastgreedy,"clustering_fastgreedy_layout_kk.png",layout)
+    Plot_Graph(g,labels_fastgreedy,OUTPUT_FOLDER +"clustering_fastgreedy_layout_kk.png",layout)
                           
     
-    Plot_graph_visual_style(clust_fastgreedy,"clustering_fastgreedy_visual_style.png")
-    Plot_graph_visual_style(clust_wtrap,"clustering_wtrap_visual_style.png")
+    Plot_graph_visual_style(clust_fastgreedy,OUTPUT_FOLDER +"clustering_fastgreedy_visual_style.png")
+    Plot_graph_visual_style(clust_wtrap,OUTPUT_FOLDER +"clustering_wtrap_visual_style.png")
 
 
     layout = g.layout_drl(weights=g.es["weight"], fixed=None, seed=None, options=None, dim=2)
 
-    Plot_Graph(g,labels_fastgreedy,"clustering_test.png",layout)
+    Plot_Graph(g,labels_fastgreedy,OUTPUT_FOLDER +"clustering_test.png",layout)
 
     
     avg_clust_fastgreedy,var_clust_fastgreedy = Calculate_distance_metric_inside_cluster(distance, clust_fastgreedy)
     avg_clust_wtrap,var_clust_wtrap =Calculate_distance_metric_inside_cluster(distance,clust_wtrap)
       
     
-    Plot_graph_visual_style(clust_fastgreedy,"clustering_fastgreedy_visual_style.png")
-    Plot_graph_visual_style(clust_wtrap,"clustering_wtrap_visual_style.png")
+    Plot_graph_visual_style(clust_fastgreedy,OUTPUT_FOLDER +"clustering_fastgreedy_visual_style.png")
+    Plot_graph_visual_style(clust_wtrap,OUTPUT_FOLDER +"clustering_wtrap_visual_style.png")
 
 
     #matrix_to_spectral = graph_normalized.get_adjacency()[:, :]  # int 0 1
     # matrix_to_spectral = graph_threshold.get_adjacency()[:, :]  # int 0 1
     
     # matrix_to_spectral = np.array(matrix_to_spectral.data)  # int
-    # ''' calculate the degree of the matrix '''
+    
     # d = np.diag(matrix_to_spectral.sum(axis=1))
     
-    # ''' Laplacian Matrix '''
     # l = np.array(d - matrix_to_spectral)
     # eig_L, eig_vec_L = np.linalg.eig(l)
     
@@ -395,11 +406,38 @@ if __name__ == "__main__":
     #sc               = SpectralClustering(5, affinity='precomputed', n_init=100,assign_labels='discretize')   
     
     #label           = sc.fit_predict(adjacency_matrix)
-    
-
-    #ig.plot(temp_graph, "graph.png", layout=layout, bbox=(500, 500), margin=50, inline='None')
-                
+                    
     end = time.time()
     elapsed_time = format(end - start, '.3f')
     print('The execution time is {0} seconds\n'.format(elapsed_time))
+    
+    
+    A = distance.flatten()
+    mean_sim  = statistics.fmean(A)
+    median_sim = statistics.median(A)
+    pstdev_sim = statistics.pstdev(data = A , mu = mean_sim)
+    
+    percentile_50_sim = np.percentile(A,50)   
+    percentile_75_sim = np.percentile(A,75)
+    
+    f = open(path +"/similarity_metrics.txt", "w")
+    
+    f.write("Some similarity metrics here \n ---------------------------- \n")
+    # f.close()
 
+    # f = open(path + "similarity_metrics.txt", "a")
+    
+    f.write("mean_sim  :  " + str(mean_sim) + " \n")
+    f.write("median_sim  :  " + str(median_sim+1) +" \n")
+    f.write("pstdev_sim  :  " + str(pstdev_sim) + "\n")
+    f.write("percentile-50_sim  :  " + str(percentile_50_sim) + "\n")
+    f.write("percentile-75_sim  :  " + str(percentile_75_sim) + "\n")
+
+    f.close()
+    
+    
+    
+    
+    
+    
+    
