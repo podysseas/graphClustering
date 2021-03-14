@@ -80,7 +80,10 @@ def calculateDistance(data):
         for j in range(start,len(distance)):
             string1 = data.iloc[i, 1]  # take the second column
             string2 = data.iloc[j, 1]
-            temp_distance = 1 - editdistance.eval(string1, string2) / len(string1)
+            if i == j :
+                temp_distance = 0
+            else:
+                temp_distance = 1 - editdistance.eval(string1, string2) / len(string1)
             # fast implementation of Levenshtein
             # https://github.com/roy-ht/editdistance
             temp_distance = format(temp_distance, '.3f')
@@ -107,3 +110,28 @@ def ChooseThresholdGraph(distance, threshold):
     # create a graph from adjacency matrix
 
     return graph_threshold
+
+def cutEdgesDynamicThreshold(distance):
+    
+    size = len(distance)
+    adj_matrix_boolean = np.ones((size, size), dtype=int)
+
+    
+    for col in range(0,len(distance)):
+        
+        distance[:,col] = np.floor(distance[:,col]*100)/100 # floor to second decimal
+        
+        
+    max_of_columns = np.amax(distance, axis=1)   # Maxima along the second axis | columns
+    
+    for i in range(0, size):
+        
+        temp_threshold = max_of_columns[i]
+        
+        # vertex_threshold[i] = format(temp_threshold, '.4f')
+
+        adj_matrix_boolean[i, :] = distance[i, :] >= temp_threshold
+
+    graph_dynamic = ig.Graph.Adjacency(adj_matrix_boolean.tolist())  # create a graph from adjacency matrix
+
+    return graph_dynamic
