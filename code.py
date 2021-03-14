@@ -467,22 +467,7 @@ if __name__ == "__main__":
 
         # f_m.close()
     
-    
-        # matrix_to_spectral = graph_normalized.get_adjacency()[:, :]  # int 0 1
-        # matrix_to_spectral = graph_threshold.get_adjacency()[:, :]  # int 0 1
-        
-        # matrix_to_spectral = np.array(matrix_to_spectral.data)  # int
-        
-        # d = np.diag(matrix_to_spectral.sum(axis=1))
-        
-        # l = np.array(d - matrix_to_spectral)
-        # eig_L, eig_vec_L = np.linalg.eig(l)
-        
-        # i = np.where(eig_L < 0.1)
-        
-        #sc               = SpectralClustering(5, affinity='precomputed', n_init=100,assign_labels='discretize')   
-        
-        #label           = sc.fit_predict(adjacency_matrix)
+
                         
 
     
