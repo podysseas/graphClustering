@@ -42,9 +42,20 @@ def heatmap(gene,filtered_data,labels,all_genes,pathToSave):
     t = sns.heatmap(total_df.T,vmax=100 )
     for item in t.get_yticklabels():
         item.set_rotation(45)
-        
+    
+    if "threshold" in pathToSave:
+       title = "Sample: " + pathToSave.split("/")[0] + "- Threshold: " + pathToSave.split("_")[2] + " - Gene: " + pathToSave.split("_")[4]
+    
+    elif "dynamic" in pathToSave:
+       title = "Sample: " + pathToSave.split("/")[0] + " - Dynamic - Gene: " + pathToSave.split("_")[3]
+
+    elif "normalized" in pathToSave:
+       title = "Sample: " + pathToSave.split("/")[0] + " - Normalized - Gene: " + pathToSave.split("_")[3]
+ 
+    t.axes.set_title(title)    
     figure = t.get_figure()
     
+    print("Saving figure in :" + str(pathToSave))
     figure.savefig(pathToSave)
     plt.close(figure)
     #pivoted_clusters['count']  = np.array(pivoted_clusters['count'],dtype=int)

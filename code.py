@@ -1,3 +1,5 @@
+
+
 """
 Created on Sat Sep 19 17:10:24 2020
 
@@ -15,7 +17,7 @@ import os
 import pandas as pd
 import time
 import igraph as ig
-
+import sys
 
 #import matplotlib.pyplot as plt
 import markov_clustering as mc
@@ -30,7 +32,7 @@ from heatmap import heatmap
 
 if __name__ == "__main__":
     
-    SAMPLES = ["T1"]
+    SAMPLES = ["T1" ,"S1","B1"]
     
     genes =  ['J-GENE and allele','V-GENE and allele','D-GENE and allele']
     
@@ -40,7 +42,7 @@ if __name__ == "__main__":
     for SAMPLE in SAMPLES:
         
         
-            FILE = '2_IMGT-gapped-nt-sequences_' + SAMPLE + '.txt'
+            file = '2_IMGT-gapped-nt-sequences_' + SAMPLE + '.txt'
             COLUMN = 'V-D-J-REGION'
             SEQUENCE_NUMBER = 'Sequence number'
             
@@ -57,16 +59,19 @@ if __name__ == "__main__":
             f_m.write(" ----------  Modularities  ------------ \n\n")
             
             __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-            data = pd.read_csv(os.path.join(__location__, FILE), sep='\t')
-            data.columns = ['Sequence number', 'Sequence ID', 'V-DOMAIN Functionality',
-                               'V-GENE and allele', 'J-GENE and allele', 'D-GENE and allele',
-                               'V-D-J-REGION', 'V-J-REGION', 'V-REGION', 'FR1-IMGT', 'CDR1-IMGT',
-                               'FR2-IMGT', 'CDR2-IMGT', 'FR3-IMGT', 'CDR3-IMGT', 'JUNCTION',
-                               'J-REGION', 'FR4-IMGT', 'Unnamed: 18']
-            #filtered_data = data[[SEQUENCE_NUMBER, COLUMN]].sample(n=500 , random_state=42).dropna()# drop nan # take 500 random samples
+            data = pd.read_csv(os.path.join(__location__,file), sep='\t')
             
-            filtered_data = data[[SEQUENCE_NUMBER, COLUMN,genes[0],genes[1],genes[2]]].sample(n=500,random_state=50).dropna()# drop nan # take 500 random samples
-
+            data = pd.read_csv(file, sep='\t')
+            data.columns = ['Sequence number', 'Sequence ID', 'V-DOMAIN Functionality',
+                                           'V-GENE and allele', 'J-GENE and allele', 
+                                           'D-GENE and allele','V-D-J-REGION', 'V-J-REGION', 
+                                           'V-REGION', 
+                                           'FR1-IMGT', 'CDR1-IMGT','FR2-IMGT', 'CDR2-IMGT', 
+                                           'FR3-IMGT', 'CDR3-IMGT','JUNCTION',
+                                           'J-REGION', 'FR4-IMGT', 'Unnamed: 18']
+           
+            
+            filtered_data = data[[SEQUENCE_NUMBER, COLUMN,genes[0],genes[1],genes[2]]].sample(n=500,random_state=50).dropna()
             # preprocess the column for the gene 
            
                
@@ -85,7 +90,7 @@ if __name__ == "__main__":
             
             ''' this block calculates the distribution of similarities '''
     
-            figure,A = PlotDistribution(distance)
+            figure,A = PlotDistribution(distance,SAMPLE)
             
             figure.savefig(OUTPUT_FOLDER +'/distribution_of_similarities.jpg', dpi=400)
         
@@ -180,12 +185,12 @@ if __name__ == "__main__":
                 # the layout_mds 
                 
                 mds_layout = graph_threshold.layout_mds(dist=distance,dim=2)
-                PlotGraph(graph_threshold,labels_fastgreedy,OUTPUT_FOLDER_IMAGES + threshold_name + "clustering_fastgreedy_layout_mds.png",mds_layout)
+                PlotGraph(graph_threshold,labels_fastgreedy, OUTPUT_FOLDER_IMAGES + threshold_name + "clustering_fastgreedy_layout_mds.png",mds_layout)
     
                 # PlotGraph(g,labels_fastgreedy,OUTPUT_FOLDER_IMAGES + threshold_name + "clustering_fastgreedy_layout_auto.png","auto")
-    
-                
-    
+                #PlotGraph(graph_threshold,labels_fastgreedy,"test_paok.png",mds_layout)
+
+                #sys.exit(255)
                 ''' ########################## '''
                 for gene in genes:
                     
